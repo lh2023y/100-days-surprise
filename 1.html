@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我们的第100天 - 优化版</title>
+<style>
+body,html{margin:0;padding:0;overflow:hidden;font-family:"Segoe UI",sans-serif;background:#111;}
+canvas#fireCanvas{position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:0;}
+#container{position:relative;z-index:1;width:100%;height:100%;}
+.full-screen{width:100vw;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;padding:1rem;box-sizing:border-box;color:white;text-align:center;}
+button{cursor:pointer;padding:.5rem 1.5rem;border:none;border-radius:999px;background:linear-gradient(45deg,#f472b6,#fb7185);color:white;font-weight:bold;font-size:1rem;transition:.3s;box-shadow:0 4px 15px rgba(0,0,0,0.3);}
+button:hover{transform:scale(1.05);box-shadow:0 8px 25px rgba(0,0,0,0.4);}
+.sakura{position:absolute;font-size:18px;color:rgba(251,182,206,0.8);pointer-events:none;user-select:none;}
+.blinking{animation: blink 1s step-end infinite;}
+@keyframes blink{from,to{opacity:1;}50%{opacity:0;}}
+.gift{width:180px;height:180px;background:#fbcfe8;display:flex;align-items:center;justify-content:center;font-size:3rem;border-radius:1rem;box-shadow:0 8px 25px rgba(0,0,0,0.3);transition:transform .4s;}
+.gift.open{animation: giftOpen 0.8s forwards;}
+@keyframes giftOpen{0%{transform:rotate(0) scale(1);}25%{transform:rotate(-10deg) scale(1.05);}50%{transform:rotate(10deg) scale(1.05);}75%{transform:rotate(-5deg) scale(1.05);}100%{transform:rotate(0) scale(1);}}
+.typewriter{max-width:600px;background:rgba(255,255,255,0.95);padding:1.5rem;border-radius:1rem;box-shadow:0 8px 25px rgba(0,0,0,0.3);font-size:1.1rem;line-height:1.6;text-align:center;color:#111;}
+.flipbook{display:flex;align-items:center;justify-content:center;margin-top:1rem;}
+.flip-page{width:300px;min-height:200px;background:rgba(255,255,255,0.95);border-radius:1rem;box-shadow:0 8px 25px rgba(0,0,0,0.3);padding:1rem;text-align:center;margin:0 1rem;transition: transform .6s;backface-visibility:hidden;color:#111;}
+.card{width:150px;height:200px;background:rgba(255,255,255,0.95);border-radius:1rem;box-shadow:0 8px 25px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:2rem;cursor:pointer;transition: transform .3s;color:#111;}
+.card:hover{transform:scale(1.05);}
+.finale-text{max-width:600px;text-align:center;}
+.next-btn{margin-top:1rem;}
+</style>
+</head>
+<body>
+<canvas id="fireCanvas"></canvas>
+<div id="container"></div>
+
+<script>
+window.onload=function(){
+
+/* ---------- 飘花 ---------- */
+function createSakura(){
+  for(let i=0;i<30;i++){
+    const span=document.createElement('span');
+    span.className='sakura';
+    span.innerText=Math.random()<0.5?'❀':'❤';
+    span.style.left=`${Math.random()*100}vw`;
+    span.style.top=`${Math.random()*100}vh`;
+    span.style.fontSize=`${12+Math.random()*14}px`;
+    span.style.opacity=`${0.4+Math.random()*0.6}`;
+    document.body.appendChild(span);
+    animateSakura(span);
+  }
+}
+function animateSakura(el){
+  const speed=0.1+Math.random()*0.3;
+  let top=parseFloat(el.style.top);
+  function step(){
+    top+=speed;
+    if(top>110) top=-10;
+    el.style.top=top+'vh';
+    requestAnimationFrame(step);
+  }
+  step();
+}
+
+/* ---------- Canvas 烟花 ---------- */
+const canvas=document.getElementById('fireCanvas');
+const ctx=canvas.getContext('2d');
+function resizeCanvas(){canvas.width=window.innerWidth; canvas.height=window.innerHeight;}
+resizeCanvas();
+window.addEventListener('resize',resizeCanvas);
+
+class Particle{
+  constructor(x,y,color){
+    this.x=x; this.y=y; this.color=color;
+    this.radius=2+Math.random()*3;
+    this.angle=Math.random()*2*Math.PI;
+    this.speed=3+Math.random()*5;
+    this.friction=0.95;
+    this.gravity=0.06;
+    this.alpha=1;
+    this.decay=0.015+Math.random()*0.02;
+    this.vx=Math.cos(this.angle)*this.speed;
+    this.vy=Math.sin(this.angle)*this.speed;
+  }
+  update(){
+    this.vx*=this.friction;
+    this.vy*=this.friction;
+    this.vy+=this.gravity;
+    this.x+=this.vx;
+    this.y+=this.vy;
+    this.alpha-=this.decay;
+  }
+  draw(){
+    ctx.save();
+    ctx.globalAlpha=this.alpha;
+    ctx.fillStyle=this.color;
+    ctx.beginPath();
+    ctx.arc(this.x,this.y,this.radius,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+let particles=[];
+function createFirework(x,y){
+  const colors=['#f87171','#fbbf24','#34d399','#60a5fa','#f472b6','#a78bfa','#fcd34d','#f97316','#f43f5e'];
+  const count=60+Math.floor(Math.random()*60);
+  for(let i=0;i<count;i++){
+    const p=new Particle(x,y,colors[Math.floor(Math.random()*colors.length)]);
+    particles.push(p);
+  }
+}
+
+function animate(){
+  ctx.fillStyle='rgba(17,17,17,0.1)'; // 夜空背景，尾迹
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.update();
+    p.draw();
+    if(p.alpha<=0) particles.splice(i,1);
+  }
+  requestAnimationFrame(animate);
+}
+animate();
+
+/* ---------- 页面数组 ---------- */
+const pages=[];
+
+/* ---------- Page 0: Cover ---------- */
+pages.push((container,next)=>{
+  container.innerHTML=`<div class="full-screen">
+    <h1 style="font-size:3rem;color:#f472b6;margin-bottom:1rem;">我们的第 100 天</h1>
+    <p style="margin-bottom:2rem;max-width:400px;">今天想给你一个小小的仪式感，愿这页面每一帧都像我们在一起的温柔瞬间。</p>
+    <button id="enterBtn">进入我们的回忆</button>
+  </div>`;
+  document.getElementById('enterBtn').onclick=next;
+});
+
+/* ---------- Page 1: Gift ---------- */
+pages.push((container,next)=>{
+  container.innerHTML=`<div class="full-screen">
+    <div class="gift" id="gift">🎁</div>
+    <p style="margin-top:1rem;">点击礼物打开</p>
+  </div>`;
+  const gift=document.getElementById('gift');
+  gift.onclick=()=>{
+    gift.classList.add('open');
+    const rect=gift.getBoundingClientRect();
+    createFirework(rect.left+rect.width/2, rect.top+rect.height/2);
+    setTimeout(next,2600);
+  };
+});
+
+/* ---------- Page 2: Typewriter ---------- */
+pages.push((container,next)=>{
+  container.innerHTML=`<div class="full-screen">
+    <div class="typewriter" id="typeText"></div>
+    <button id="nextBtn" class="next-btn" style="display:none;">继续</button>
+  </div>`;
+  const text="在过去的一百天里，你让我知道什么是心动与被爱。谢谢你，愿未来每一个日子都与我同在。";
+  const typeText=document.getElementById('typeText');
+  const nextBtn=document.getElementById('nextBtn');
+  let idx=0;
+  function typeChar(){
+    if(idx<text.length){
+      typeText.innerHTML=text.slice(0,idx)+'<span class="blinking">|</span>';
+      idx++;
+      setTimeout(typeChar,45);
+    }else{ typeText.innerHTML=text; nextBtn.style.display='inline-block'; }
+  }
+  typeChar();
+  nextBtn.onclick=next;
+});
+
+/* ---------- Page 3: Fireworks ---------- */
+pages.push((container,next)=>{
+  container.innerHTML=`<div class="full-screen" id="fireScreen">
+    <p style="margin-bottom:1rem;">点击任意位置放烟花 🎆</p>
+    <button id="fireNextBtn" class="next-btn" style="display:none;">下一步</button>
+  </div>`;
+  const fireScreen=document.getElementById('fireScreen');
+  const nextBtn=document.getElementById('fireNextBtn');
+  fireScreen.onclick=(e)=>{
+    createFirework(e.clientX,e.clientY);
+    nextBtn.style.display='inline-block';
+  };
+  nextBtn.onclick=next;
+});
+
+/* ---------- Page 4: FlipBook ---------- */
+pages.push((container,next)=>{
+  const flipPages=[
+    "我们第一次牵手的那天",
+    "一起吃过的第一顿晚饭",
+    "你笑得很开心的瞬间",
+    "一起看过的那部电影",
+    "旅行里一起走过的桥",
+    "我偷偷早起为你做的早餐",
+    "我们的第一个小约定",
+    "还有很多还没发生的美好"
+  ];
+  let idx=0;
+  container.innerHTML=`<div class="full-screen">
+    <div class="flipbook">
+      <button id="prevBtn">◀</button>
+      <div class="flip-page" id="flipPage"></div>
+      <button id="nextBtn">▶</button>
+    </div>
+    <button id="flipNextBtn" class="next-btn" style="display:none;">下一步</button>
+  </div>`;
+  const flipPage=document.getElementById('flipPage');
+  const prevBtn=document.getElementById('prevBtn');
+  const nextBtn=document.getElementById('nextBtn');
+  const flipNextBtn=document.getElementById('flipNextBtn');
+  function render(){flipPage.innerText=flipPages[idx]; flipNextBtn.style.display=(idx===flipPages.length-1)?'inline-block':'none';}
+  prevBtn.onclick=()=>{idx=Math.max(0,idx-1);render();}
+  nextBtn.onclick=()=>{idx=Math.min(flipPages.length-1,idx+1);render();}
+  flipNextBtn.onclick=next;
+  render();
+});
+
+/* ---------- Page 5: DrawCard ---------- */
+pages.push((container,next)=>{
+  const quotes=[
+    "在我心中，你像一本永远看不厌的书。",
+    "喜欢你，是我做过最肯定的事。",
+    "若能与你共度余生，便是最好的安排。",
+    "你的笑，使世界都亮了。",
+    "我会把每一个未来都分给你一半。"
+  ];
+  container.innerHTML=`<div class="full-screen">
+    <div class="card" id="drawCard">🎴</div>
+    <p style="margin-top:1rem;">抽一张卡</p>
+    <div id="result" style="margin-top:1rem;"></div>
+    <button id="nextBtn" class="next-btn" style="display:none;">下一步</button>
+  </div>`;
+  const card=document.getElementById('drawCard');
+  const result=document.getElementById('result');
+  const nextBtn=document.getElementById('nextBtn');
+  card.onclick=()=>{
+    card.style.transform='scale(1.2)';
+    const rect=card.getBoundingClientRect();
+    createFirework(rect.left+rect.width/2,rect.top+rect.height/2);
+    setTimeout(()=>{
+      card.style.transform='scale(1)';
+      const r=quotes[Math.floor(Math.random()*quotes.length)];
+      result.innerText=r;
+      nextBtn.style.display='inline-block';
+    },900);
+  };
+  nextBtn.onclick=next;
+});
+
+/* ---------- Page 6: Finale ---------- */
+pages.push((container,next)=>{
+  container.innerHTML=`<div class="full-screen finale-text">
+    <h2 style="font-size:2rem;color:#f472b6;">谢谢你，留在我身旁</h2>
+    <p style="margin-top:1rem;">未来的每一个一百天，我都想要和你一起走。点下面的按钮，再听我说一句。</p>
+    <button id="loveBtn" class="next-btn">再说一次我喜欢你</button>
+  </div>`;
+  const loveBtn=document.getElementById('loveBtn');
+  loveBtn.onclick=()=>{
+    const x=window.innerWidth/2, y=window.innerHeight/2;
+    createFirework(x,y);
+    alert('我喜欢你 ❤️');
+  };
+});
+
+/* ---------- 页面控制 ---------- */
+let current=0;
+const container=document.getElementById('container');
+function nextPage(){
+  if(current<pages.length){
+    pages[current](container,()=>{ current++; nextPage(); });
+  }
+}
+
+/* ---------- 初始化 ---------- */
+createSakura();
+nextPage();
+};
+</script>
+</body>
+</html>
