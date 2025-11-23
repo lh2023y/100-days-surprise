@@ -1,283 +1,451 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>我们的第100天 - 优化版</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>我们的第100天 — 豪华升级版</title>
 <style>
-body,html{margin:0;padding:0;overflow:hidden;font-family:"Segoe UI",sans-serif;background:#111;}
-canvas#fireCanvas{position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:0;}
-#container{position:relative;z-index:1;width:100%;height:100%;}
-.full-screen{width:100vw;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;padding:1rem;box-sizing:border-box;color:white;text-align:center;}
-button{cursor:pointer;padding:.5rem 1.5rem;border:none;border-radius:999px;background:linear-gradient(45deg,#f472b6,#fb7185);color:white;font-weight:bold;font-size:1rem;transition:.3s;box-shadow:0 4px 15px rgba(0,0,0,0.3);}
-button:hover{transform:scale(1.05);box-shadow:0 8px 25px rgba(0,0,0,0.4);}
-.sakura{position:absolute;font-size:18px;color:rgba(251,182,206,0.8);pointer-events:none;user-select:none;}
-.blinking{animation: blink 1s step-end infinite;}
-@keyframes blink{from,to{opacity:1;}50%{opacity:0;}}
-.gift{width:180px;height:180px;background:#fbcfe8;display:flex;align-items:center;justify-content:center;font-size:3rem;border-radius:1rem;box-shadow:0 8px 25px rgba(0,0,0,0.3);transition:transform .4s;}
-.gift.open{animation: giftOpen 0.8s forwards;}
-@keyframes giftOpen{0%{transform:rotate(0) scale(1);}25%{transform:rotate(-10deg) scale(1.05);}50%{transform:rotate(10deg) scale(1.05);}75%{transform:rotate(-5deg) scale(1.05);}100%{transform:rotate(0) scale(1);}}
-.typewriter{max-width:600px;background:rgba(255,255,255,0.95);padding:1.5rem;border-radius:1rem;box-shadow:0 8px 25px rgba(0,0,0,0.3);font-size:1.1rem;line-height:1.6;text-align:center;color:#111;}
-.flipbook{display:flex;align-items:center;justify-content:center;margin-top:1rem;}
-.flip-page{width:300px;min-height:200px;background:rgba(255,255,255,0.95);border-radius:1rem;box-shadow:0 8px 25px rgba(0,0,0,0.3);padding:1rem;text-align:center;margin:0 1rem;transition: transform .6s;backface-visibility:hidden;color:#111;}
-.card{width:150px;height:200px;background:rgba(255,255,255,0.95);border-radius:1rem;box-shadow:0 8px 25px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:2rem;cursor:pointer;transition: transform .3s;color:#111;}
-.card:hover{transform:scale(1.05);}
-.finale-text{max-width:600px;text-align:center;}
-.next-btn{margin-top:1rem;}
+/* ---------- reset + 基础 ---------- */
+:root{
+  --accent1: #ff7ab6;
+  --accent2: #ff9aa8;
+  --glass-bg: rgba(255,255,255,0.12);
+  --glass-border: rgba(255,255,255,0.14);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:linear-gradient(180deg,#2b0b20 0%, #2f1026 45%, #111 100%);font-family:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,"Noto Sans CJK SC","PingFang SC","Hiragino Sans GB",sans-serif;color:#fff;overflow:hidden}
+
+/* ---------- canvas 层（背景） ---------- */
+canvas#fireCanvas{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0;pointer-events:none;}
+
+/* ---------- UI 层 ---------- */
+#container{position:relative;z-index:2;width:100%;height:100%;}
+
+/* ---------- 通用弹性与淡入 ---------- */
+.full-screen{width:100vw;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;padding:1rem;box-sizing:border-box;text-align:center;animation:pageIn .5s ease both;}
+@keyframes pageIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ---------- 玻璃卡片样式 ---------- */
+.glass-card{
+  background:var(--glass-bg);
+  border:1px solid var(--glass-border);
+  border-radius:16px;
+  padding:18px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.45);
+  backdrop-filter: blur(12px) saturate(120%);
+}
+
+/* ---------- 樱花/心形飘落 ---------- */
+.sakura{position:fixed;pointer-events:none;user-select:none;z-index:1;color:rgba(255,190,210,0.9)}
+
+/* ---------- 按钮 ---------- */
+.btn{
+  display:inline-block;
+  padding:.7rem 1.6rem;
+  border-radius:999px;
+  background:linear-gradient(135deg,var(--accent1),var(--accent2));
+  color:white;font-weight:700;border:none;cursor:pointer;
+  box-shadow:0 8px 30px rgba(255,120,160,0.12), inset 0 -2px 8px rgba(0,0,0,0.08);
+  transition:transform .22s ease, box-shadow .22s ease;
+}
+.btn:active{transform:translateY(2px)}
+.btn:hover{transform:scale(1.05);box-shadow:0 14px 40px rgba(255,120,160,0.18)}
+
+/* ---------- Gift ---------- */
+.gift{width:190px;height:190px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:3.2rem;background:linear-gradient(180deg,#ffd7ea,#ffc0de);cursor:pointer;transition:transform .45s cubic-bezier(.2,.9,.2,1);box-shadow:0 12px 40px rgba(0,0,0,0.35)}
+.gift.open{animation:giftOpen .8s ease both}
+@keyframes giftOpen{0%{transform:rotate(0) scale(1)}25%{transform:rotate(-12deg) scale(1.05)}50%{transform:rotate(12deg) scale(1.05)}75%{transform:rotate(-6deg) scale(1.05)}100%{transform:rotate(0) scale(1)}}
+
+/* ---------- Typewriter ---------- */
+.typewriter{max-width:700px;border-radius:14px;padding:18px;font-size:1.05rem;line-height:1.7;background:#fff;color:#111;text-align:center;}
+
+/* ---------- FlipBook ---------- */
+.flipbook{display:flex;align-items:center;justify-content:center;gap:12px}
+.flip-page{width:420px;min-height:420px;border-radius:14px;padding:0;margin:0;transition:transform .45s ease,opacity .35s ease;display:flex;align-items:stretch;overflow:hidden}
+.flip-card{width:100%;height:100%;display:flex;flex-direction:column;overflow:hidden;border-radius:14px}
+.flip-img-box{height:65%;width:100%;overflow:hidden;background:#ddd}
+.flip-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .8s cubic-bezier(.2,.9,.2,1)}
+.flip-text{height:35%;display:flex;align-items:center;justify-content:center;padding:16px;font-size:1.05rem;color:#111;background:linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95));text-align:center}
+
+/* ---------- flip meta ---------- */
+.flip-meta{position:absolute;right:18px;bottom:18px;font-size:13px;color:rgba(255,255,255,0.85)}
+
+/* ---------- Card & Draw ---------- */
+.card{width:160px;height:220px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:2.2rem;cursor:pointer;transition:transform .25s ease;box-shadow:0 12px 35px rgba(0,0,0,0.35);background:linear-gradient(180deg,#fff,#fafafa);color:#111}
+.card:active{transform:translateY(2px)}
+/* finale */
+.finale-text{max-width:720px}
+
+/* ---------- 点击特效：ripple & hearts ---------- */
+.ripple{position:fixed;width:24px;height:24px;border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);background:radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0.2) 40%, transparent 60%);animation:rippleAnim .8s ease-out forwards;z-index:3}
+@keyframes rippleAnim{from{transform:translate(-50%,-50%) scale(.2);opacity:1}to{transform:translate(-50%,-50%) scale(8);opacity:0}}
+.flyHeart{position:fixed;pointer-events:none;font-size:12px;color:rgba(255,120,160,.95);transform-origin:center;animation:flyUp 1.1s cubic-bezier(.18,.9,.18,1) forwards;z-index:3}
+@keyframes flyUp{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--dx,-40px),var(--dy,-120px)) scale(.3)}}
+
+/* ---------- small screens ---------- */
+@media (max-width:640px){
+  .flip-page{width:92vw; min-height:64vh}
+  .flip-text{font-size:1rem;padding:12px}
+  .gift{width:150px;height:150px;font-size:2.6rem}
+  .card{width:140px;height:190px}
+}
+
+/* 九宫格小卡片固定高度，图片铺满，不显示文字 */
+.flip-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.flip-grid .flip-card {
+  margin: 0;
+  height: 120px; /* 固定高度，可根据需要调整 */
+  border-radius: 12px;
+  overflow: hidden;
+  background: #eee;
+  display: flex;
+  flex-direction: column;
+}
+
+.flip-grid .flip-img-box {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.flip-grid .flip-img-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 填满格子，保持比例 */
+  display: block;
+}
+
+/* 隐藏文字区域 */
+.flip-grid .flip-text {
+  display: none;
+}
+
+
 </style>
 </head>
 <body>
+
+<!-- canvas 烟花层 -->
 <canvas id="fireCanvas"></canvas>
+
+<!-- UI 内容层 -->
 <div id="container"></div>
 
+<!-- 音乐（FLAC + MP3 回退）-->
+<audio id="bgm" preload="auto" loop playsinline>
+  <source src="music.flac" type="audio/flac">
+  <source src="music.mp3" type="audio/mpeg">
+</audio>
+
 <script>
-window.onload=function(){
+window.addEventListener('load', ()=>{
 
-/* ---------- 飘花 ---------- */
-function createSakura(){
-  for(let i=0;i<30;i++){
-    const span=document.createElement('span');
-    span.className='sakura';
-    span.innerText=Math.random()<0.5?'❀':'❤';
-    span.style.left=`${Math.random()*100}vw`;
-    span.style.top=`${Math.random()*100}vh`;
-    span.style.fontSize=`${12+Math.random()*14}px`;
-    span.style.opacity=`${0.4+Math.random()*0.6}`;
-    document.body.appendChild(span);
-    animateSakura(span);
+  const bgm = document.getElementById('bgm');
+  bgm.volume = 0;
+  bgm.play().then(()=> { setTimeout(()=>{ bgm.volume = 1 }, 800); }).catch(()=>{
+    const resume = ()=>{ bgm.volume=1; bgm.play().catch(()=>{}); window.removeEventListener('click', resume); window.removeEventListener('touchstart', resume); };
+    window.addEventListener('click', resume, {once:true});
+    window.addEventListener('touchstart', resume, {once:true});
+  });
+
+  const canvas = document.getElementById('fireCanvas');
+  const ctx = canvas.getContext('2d');
+  function resizeCanvas(){ canvas.width=innerWidth; canvas.height=innerHeight; }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  class Particle{
+    constructor(x,y,color,vel,rad){ this.x=x; this.y=y; this.color=color; this.vx=vel.x; this.vy=vel.y; this.r=rad; this.life=1; this.decay=0.015+Math.random()*0.02; this.friction=0.96; this.gravity=0.06; }
+    update(){ this.vx*=this.friction; this.vy*=this.friction; this.vy+=this.gravity; this.x+=this.vx; this.y+=this.vy; this.life-=this.decay; }
+    draw(){ if(this.life<=0)return; ctx.save(); ctx.globalAlpha=Math.max(0,this.life); const g=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,this.r*6); g.addColorStop(0,this.color); g.addColorStop(0.2,this.color); g.addColorStop(1,'rgba(0,0,0,0)'); ctx.fillStyle=g; ctx.beginPath(); ctx.arc(this.x,this.y,this.r*2.2,0,Math.PI*2); ctx.fill(); ctx.globalAlpha=Math.max(0,this.life); ctx.fillStyle=this.color; ctx.beginPath(); ctx.arc(this.x,this.y,this.r,0,Math.PI*2); ctx.fill(); ctx.restore(); }
   }
-}
-function animateSakura(el){
-  const speed=0.1+Math.random()*0.3;
-  let top=parseFloat(el.style.top);
-  function step(){
-    top+=speed;
-    if(top>110) top=-10;
-    el.style.top=top+'vh';
-    requestAnimationFrame(step);
-  }
-  step();
-}
 
-/* ---------- Canvas 烟花 ---------- */
-const canvas=document.getElementById('fireCanvas');
-const ctx=canvas.getContext('2d');
-function resizeCanvas(){canvas.width=window.innerWidth; canvas.height=window.innerHeight;}
-resizeCanvas();
-window.addEventListener('resize',resizeCanvas);
+  let particles=[];
 
-class Particle{
-  constructor(x,y,color){
-    this.x=x; this.y=y; this.color=color;
-    this.radius=2+Math.random()*3;
-    this.angle=Math.random()*2*Math.PI;
-    this.speed=3+Math.random()*5;
-    this.friction=0.95;
-    this.gravity=0.06;
-    this.alpha=1;
-    this.decay=0.015+Math.random()*0.02;
-    this.vx=Math.cos(this.angle)*this.speed;
-    this.vy=Math.sin(this.angle)*this.speed;
-  }
-  update(){
-    this.vx*=this.friction;
-    this.vy*=this.friction;
-    this.vy+=this.gravity;
-    this.x+=this.vx;
-    this.y+=this.vy;
-    this.alpha-=this.decay;
-  }
-  draw(){
-    ctx.save();
-    ctx.globalAlpha=this.alpha;
-    ctx.fillStyle=this.color;
-    ctx.beginPath();
-    ctx.arc(this.x,this.y,this.radius,0,Math.PI*2);
-    ctx.fill();
-    ctx.restore();
-  }
-}
+  function createFirework(x,y,intensity=null){ const colors=['#ff6b8a','#ffd166','#7ee787','#7dc7ff','#c78bff','#ffd4a3','#ff5c7c']; const count=(intensity?(intensity):(80+Math.floor(Math.random()*80))); for(let i=0;i<count;i++){ const angle=Math.random()*Math.PI*2; const speed=2+Math.random()*6; const vel={x:Math.cos(angle)*speed,y:Math.sin(angle)*speed*(0.7+Math.random()*1.3)}; const c=colors[Math.floor(Math.random()*colors.length)]; const rad=2+Math.random()*3; particles.push(new Particle(x,y,c,vel,rad)); } }
 
-let particles=[];
-function createFirework(x,y){
-  const colors=['#f87171','#fbbf24','#34d399','#60a5fa','#f472b6','#a78bfa','#fcd34d','#f97316','#f43f5e'];
-  const count=60+Math.floor(Math.random()*60);
-  for(let i=0;i<count;i++){
-    const p=new Particle(x,y,colors[Math.floor(Math.random()*colors.length)]);
-    particles.push(p);
-  }
-}
+  function animate(){ ctx.fillStyle='rgba(8,8,10,0.12)'; ctx.fillRect(0,0,canvas.width,canvas.height); for(let i=particles.length-1;i>=0;i--){ const p=particles[i]; p.update(); p.draw(); if(p.life<=0||p.x<-50||p.y>canvas.height+100) particles.splice(i,1); } requestAnimationFrame(animate); }
+  animate();
 
-function animate(){
-  ctx.fillStyle='rgba(17,17,17,0.1)'; // 夜空背景，尾迹
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-  for(let i=particles.length-1;i>=0;i--){
-    const p=particles[i];
-    p.update();
-    p.draw();
-    if(p.alpha<=0) particles.splice(i,1);
-  }
-  requestAnimationFrame(animate);
-}
-animate();
+  function createRipple(x,y){ const el=document.createElement('div'); el.className='ripple'; el.style.left=x+'px'; el.style.top=y+'px'; document.body.appendChild(el); setTimeout(()=>el.remove(),900); }
+  function createHearts(x,y){ const total=8+Math.floor(Math.random()*6); for(let i=0;i<total;i++){ const h=document.createElement('div'); h.className='flyHeart'; h.style.left=x+'px'; h.style.top=y+'px'; const dx=(Math.random()*2-1)*(40+Math.random()*80); const dy=-(60+Math.random()*140); h.style.setProperty('--dx',dx+'px'); h.style.setProperty('--dy',dy+'px'); h.style.fontSize=(12+Math.random()*18)+'px'; h.textContent='❤'; document.body.appendChild(h); setTimeout(()=>h.remove(),1200+Math.random()*400); } }
 
-/* ---------- 页面数组 ---------- */
-const pages=[];
+  const pages=[]; const container=document.getElementById('container'); let current=0;
 
-/* ---------- Page 0: Cover ---------- */
-pages.push((container,next)=>{
-  container.innerHTML=`<div class="full-screen">
-    <h1 style="font-size:3rem;color:#f472b6;margin-bottom:1rem;">我们的第 100 天</h1>
-    <p style="margin-bottom:2rem;max-width:400px;">今天想给你一个小小的仪式感，愿这页面每一帧都像我们在一起的温柔瞬间。</p>
-    <button id="enterBtn">进入我们的回忆</button>
-  </div>`;
-  document.getElementById('enterBtn').onclick=next;
-});
+  /* Page 0: Cover */
+  pages.push((container,next)=>{
+    container.innerHTML=`<div class="full-screen">
+      <div class="glass-card" style="text-align:center;max-width:720px">
+        <h1 style="font-size:2.8rem;margin:0;color:var(--accent1)">我们的第 100 天</h1>
+        <p style="color:rgba(255,255,255,0.9);margin:18px 0 28px;">今天想给你一个小小的仪式感，愿这页面每一帧都像我们在一起的温柔</p>
+        <div style="display:flex;gap:12px;justify-content:center">
+          <button id="enterBtn" class="btn">进入我们的回忆</button>
+          <button id="playBtn" class="btn" style="background:linear-gradient(135deg,#ffd166,#ff9aa2)">播放音乐</button>
+        </div>
+      </div>
+    </div>`;
+    document.getElementById('enterBtn').onclick=next;
+    document.getElementById('playBtn').onclick=()=>{ bgm.play().catch(()=>{}); };
+  });
 
-/* ---------- Page 1: Gift ---------- */
-pages.push((container,next)=>{
-  container.innerHTML=`<div class="full-screen">
-    <div class="gift" id="gift">🎁</div>
-    <p style="margin-top:1rem;">点击礼物打开</p>
-  </div>`;
-  const gift=document.getElementById('gift');
-  gift.onclick=()=>{
-    gift.classList.add('open');
-    const rect=gift.getBoundingClientRect();
-    createFirework(rect.left+rect.width/2, rect.top+rect.height/2);
-    setTimeout(next,2600);
-  };
-});
+  /* Page 1: Gift */
+  pages.push((container,next)=>{
+    container.innerHTML=`<div class="full-screen">
+      <div class="glass-card" style="display:flex;flex-direction:column;align-items:center;gap:12px">
+        <div class="gift" id="gift">🎁</div>
+        <div style="color:rgba(255,255,255,0.9)">点击礼物打开</div>
+      </div>
+    </div>`;
+    const gift=document.getElementById('gift');
+    gift.onclick=(e)=>{
+      gift.classList.add('open');
+      const rect=gift.getBoundingClientRect();
+      createFirework(rect.left+rect.width/2,rect.top+rect.height/2,120);
+      createRipple(rect.left+rect.width/2,rect.top+rect.height/2);
+      setTimeout(()=>next(),1400);
+    };
+  });
 
-/* ---------- Page 2: Typewriter ---------- */
-pages.push((container,next)=>{
-  container.innerHTML=`<div class="full-screen">
-    <div class="typewriter" id="typeText"></div>
-    <button id="nextBtn" class="next-btn" style="display:none;">继续</button>
-  </div>`;
-  const text="在过去的一百天里，你让我知道什么是心动与被爱。谢谢你，愿未来每一个日子都与我同在。";
-  const typeText=document.getElementById('typeText');
-  const nextBtn=document.getElementById('nextBtn');
-  let idx=0;
-  function typeChar(){
-    if(idx<text.length){
-      typeText.innerHTML=text.slice(0,idx)+'<span class="blinking">|</span>';
-      idx++;
-      setTimeout(typeChar,45);
-    }else{ typeText.innerHTML=text; nextBtn.style.display='inline-block'; }
-  }
-  typeChar();
-  nextBtn.onclick=next;
-});
+  /* Page 2: Typewriter */
+  pages.push((container,next)=>{
+    container.innerHTML=`<div class="full-screen">
+      <div class="typewriter glass-card" id="typeBox">
+        <div id="typeText" style="min-height:84px"></div>
+        <div style="margin-top:14px;text-align:center">
+          <button id="typeNext" class="btn" style="display:none">继续</button>
+        </div>
+      </div>
+    </div>`;
+    const text="在过去的一百天里，你让我知道什么是心动与被爱。谢谢你，愿未来每一个日子都与我同在。";
+    const typeText=document.getElementById('typeText');
+    const typeNext=document.getElementById('typeNext');
+    let i=0;
+    function typeChar(){
+      if(i<text.length){
+        typeText.innerHTML=text.slice(0,i)+'<span class="blinking">|</span>';
+        i++; setTimeout(typeChar,44);
+      }else{
+        typeText.innerHTML=text;
+        typeNext.style.display='inline-block';
+      }
+    }
+    typeChar();
+    typeNext.onclick=next;
+  });
 
-/* ---------- Page 3: Fireworks ---------- */
-pages.push((container,next)=>{
-  container.innerHTML=`<div class="full-screen" id="fireScreen">
-    <p style="margin-bottom:1rem;">点击任意位置放烟花 🎆</p>
-    <button id="fireNextBtn" class="next-btn" style="display:none;">下一步</button>
-  </div>`;
-  const fireScreen=document.getElementById('fireScreen');
-  const nextBtn=document.getElementById('fireNextBtn');
-  fireScreen.onclick=(e)=>{
-    createFirework(e.clientX,e.clientY);
-    nextBtn.style.display='inline-block';
-  };
-  nextBtn.onclick=next;
-});
+  /* Page 3: Fireworks interactive */
+  pages.push((container,next)=>{
+    container.innerHTML=`<div class="full-screen">
+      <div class="glass-card" style="width:80%;max-width:880px">
+        <p style="margin:0 0 12px;">随意点屏幕放烟花：🎆🎆🎆🎆</p>
+        <div style="margin-top:14px;text-align:center">
+          <button id="fireNext" class="btn" style="display:none">下一步</button>
+        </div>
+      </div>
+    </div>`;
+    const fireNext=document.getElementById('fireNext');
+    function onClick(e){
+      const x=e.clientX||window.innerWidth/2; const y=e.clientY||window.innerHeight/2;
+      createRipple(x,y); createHearts(x,y); createFirework(x,y); bgm.play().catch(()=>{});
+      fireNext.style.display='inline-block';
+    }
+    document.getElementById('container').addEventListener('click',onClick);
+    fireNext.onclick=()=>{ document.getElementById('container').removeEventListener('click',onClick); next(); };
+  });
 
-/* ---------- Page 4: FlipBook ---------- */
+  /* Page 4: FlipBook */
+  /* Page 4: FlipBook */
+/* Page 4: FlipBook 两个九宫格翻页 */
 pages.push((container,next)=>{
   const flipPages=[
-    "我们第一次牵手的那天",
-    "一起吃过的第一顿晚饭",
-    "你笑得很开心的瞬间",
-    "一起看过的那部电影",
-    "旅行里一起走过的桥",
-    "一起去散步的夜晚",
-    "我们的第一个小约定",
-    "还有很多还没发生的美好"
+    { img: "image/1.jpg", text: "这张票，是开往我心里的起点🚄💘" },
+    { img: "image/2.jpg", text: "给你买的花，心跳得像要跳出来💓" },
+    { img: "image/3.jpg", text: "一起吃的第一顿饭，对坐的你让我尝到了心动🍽️✨" },
+    { img: "image/4.jpg", text: "偷拍你的那个瞬间，是我最小心翼翼的心动📸💞" },
+    { img: "image/5.jpg", text: "当屏幕变成心形，我的心里全是你❤️👀" },
+    { img: "image/6.jpg", text: "街角合照，装下了我全部的喜欢📸💑" },
+    // 九宫格图片
+    { img: "image/7.jpg", text: "" },
+    { img: "image/8.jpg", text: "" },
+    { img: "image/9.jpg", text: "" },
+    { img: "image/10.jpg", text: "" },
+    { img: "image/11.jpg", text: "" },
+    { img: "image/12.jpg", text: "" },
+    { img: "image/13.jpg", text: "" },
+    { img: "image/14.jpg", text: "" },
+    { img: "image/15.jpg", text: "" },
+    // 第二个九宫格
+    { img: "image/16.jpg", text: "" },
+    { img: "image/17.jpg", text: "" },
+    { img: "image/18.jpg", text: "" },
+    { img: "image/19.jpg", text: "" },
+    { img: "image/20.jpg", text: "" },
+    { img: "image/21.jpg", text: "" },
+    { img: "image/22.jpg", text: "" },
+    { img: "image/23.jpg", text: "" },
+    { img: "image/24.jpg", text: "" },
   ];
-  let idx=0;
-  container.innerHTML=`<div class="full-screen">
-    <div class="flipbook">
-      <button id="prevBtn">◀</button>
-      <div class="flip-page" id="flipPage"></div>
-      <button id="nextBtn">▶</button>
+
+  container.innerHTML=`
+  <div class="full-screen">
+    <div style="width:100%;max-width:980px;position:relative">
+      <div class="flipbook" id="flipBook">
+        <button id="prevBtn" class="btn" style="background:rgba(255,255,255,0.95);color:#111">◀</button>
+        <div class="flip-page" id="flipPage"></div>
+        <button id="nextBtn" class="btn" style="background:rgba(255,255,255,0.95);color:#111">▶</button>
+      </div>
+      <div class="flip-meta" id="flipMeta"></div>
+      <div style="text-align:center;margin-top:14px;">
+        <button id="flipToNext" class="btn">下一步</button>
+      </div>
     </div>
-    <button id="flipNextBtn" class="next-btn" style="display:none;">下一步</button>
   </div>`;
+
   const flipPage=document.getElementById('flipPage');
   const prevBtn=document.getElementById('prevBtn');
   const nextBtn=document.getElementById('nextBtn');
-  const flipNextBtn=document.getElementById('flipNextBtn');
-  function render(){flipPage.innerText=flipPages[idx]; flipNextBtn.style.display=(idx===flipPages.length-1)?'inline-block':'none';}
-  prevBtn.onclick=()=>{idx=Math.max(0,idx-1);render();}
-  nextBtn.onclick=()=>{idx=Math.min(flipPages.length-1,idx+1);render();}
-  flipNextBtn.onclick=next;
+  const flipMeta=document.getElementById('flipMeta');
+  const flipToNext=document.getElementById('flipToNext');
+  let idx=0;       // 当前页索引
+  let gridPage=0;  // 九宫格翻页索引（0 或 1）
+
+  function render(){
+    let html='';
+    if(idx<6){
+      // 前六张大图翻页
+      const d=flipPages[idx];
+      html=`<div class="flip-card">
+        <div class="flip-img-box"><img src="${d.img}" class="flip-img" alt="page-${idx+1}"></div>
+        <div class="flip-text">${d.text}</div>
+      </div>`;
+      flipMeta.textContent=`${idx+1} / 6`;
+    } else {
+      // 九宫格
+      const start = 6 + gridPage*9;
+      const end = Math.min(start+9, flipPages.length);
+      const group = flipPages.slice(start, end);
+      html='<div class="flip-grid">';
+      group.forEach((d,j)=>{
+        html+=`<div class="flip-card">
+          <div class="flip-img-box"><img src="${d.img}" class="flip-img" alt="page-${start+j+1}"></div>
+          <div class="flip-text">${d.text}</div>
+        </div>`;
+      });
+      html+='</div>';
+      flipMeta.textContent=`九宫格 ${gridPage+1} / 2`;
+    }
+    flipPage.innerHTML=html;
+  }
+
+  function go(n){
+    if(idx<6){
+      idx=n;
+      if(idx<0) idx=0;
+      if(idx>5) idx=6;
+    } else {
+      gridPage += n;
+      if(gridPage<0) gridPage=0;
+      if(gridPage>1) gridPage=1;
+    }
+    flipPage.style.transform='scale(.94) rotateY(12deg)';
+    flipPage.style.opacity='0';
+    setTimeout(()=>{ render(); flipPage.style.transform='scale(1) rotateY(0deg)'; flipPage.style.opacity='1'; },220);
+  }
+
+  prevBtn.onclick=()=> go(idx<6?idx-1:-1); // 如果前六张，大图翻页，否则九宫格上一页
+  nextBtn.onclick=()=> go(idx<6?idx+1:1);  // 九宫格翻页下一页
+  flipToNext.onclick=next;
+
+  window.addEventListener('keydown',(e)=>{
+    if(e.key==='ArrowLeft') prevBtn.click();
+    if(e.key==='ArrowRight') nextBtn.click();
+  });
+
   render();
 });
 
-/* ---------- Page 5: DrawCard ---------- */
-pages.push((container,next)=>{
-  const quotes=[
-    "在我心中，你像一本永远看不厌的书。",
-    "喜欢你，是我做过最肯定的事。",
-    "若能与你共度余生，便是最好的安排。",
-    "你的笑，使世界都亮了。",
-    "我会把每一个未来都分给你一半。"
-  ];
-  container.innerHTML=`<div class="full-screen">
-    <div class="card" id="drawCard">🎴</div>
-    <p style="margin-top:1rem;">抽一张卡</p>
-    <div id="result" style="margin-top:1rem;"></div>
-    <button id="nextBtn" class="next-btn" style="display:none;">下一步</button>
-  </div>`;
-  const card=document.getElementById('drawCard');
-  const result=document.getElementById('result');
-  const nextBtn=document.getElementById('nextBtn');
-  card.onclick=()=>{
-    card.style.transform='scale(1.2)';
-    const rect=card.getBoundingClientRect();
-    createFirework(rect.left+rect.width/2,rect.top+rect.height/2);
-    setTimeout(()=>{
-      card.style.transform='scale(1)';
-      const r=quotes[Math.floor(Math.random()*quotes.length)];
-      result.innerText=r;
-      nextBtn.style.display='inline-block';
-    },900);
-  };
-  nextBtn.onclick=next;
+
+
+  /* Page 5: DrawCard */
+  pages.push((container,next)=>{
+    const quotes=[
+      "在我心中，你像一本永远看不厌的书。",
+      "喜欢你，是我做过最肯定的事。",
+      "若能与你共度余生，便是最好的安排。",
+      "你的笑，使世界都亮了。",
+      "我会把每一个未来都分给你一半。"
+    ];
+    container.innerHTML=`<div class="full-screen">
+      <div class="glass-card" style="display:flex;flex-direction:column;align-items:center;gap:12px">
+        <div class="card" id="drawCard">🎴</div>
+        <div style="color:rgba(255,255,255,0.9)">抽一张卡</div>
+        <div id="result" style="min-height:36px;color:rgba(255,255,255,0.95)"></div>
+        <div><button id="drawNext" class="btn" style="display:none">下一步</button></div>
+      </div>
+    </div>`;
+    const card=document.getElementById('drawCard');
+    const result=document.getElementById('result');
+    const drawNext=document.getElementById('drawNext');
+    card.onclick=()=>{
+      card.style.transform='scale(1.16)';
+      const rect=card.getBoundingClientRect();
+      createFirework(rect.left+rect.width/2,rect.top+rect.height/2,100);
+      setTimeout(()=>{
+        card.style.transform='scale(1)';
+        const r=quotes[Math.floor(Math.random()*quotes.length)];
+        result.innerText=r;
+        drawNext.style.display='inline-block';
+      },700);
+    };
+    drawNext.onclick=next;
+  });
+
+  /* Page 6: Finale */
+  pages.push((container,next)=>{
+    container.innerHTML=`<div class="full-screen">
+      <div class="glass-card finale-text" style="max-width:720px">
+        <h2 style="font-size:2rem;margin:0;color:var(--accent1)">谢谢你，留在我身旁</h2>
+        <p style="margin-top:12px;color:rgba(255,255,255,0.95)">未来的每一个一百天，我都想要和你一起走。点下面按钮，再听我说一句。</p>
+        <div style="margin-top:16px"><button id="loveBtn" class="btn">再说一次我喜欢你</button></div>
+      </div>
+    </div>`;
+    const loveBtn=document.getElementById('loveBtn');
+    loveBtn.onclick=()=>{
+      createFirework(window.innerWidth/2,window.innerHeight/2,180);
+      bgm.play().catch(()=>{});
+      setTimeout(()=>alert('我喜欢你 ❤️'),500);
+    };
+  });
+
+  function nextPage(){ if(current<pages.length){ pages[current](container,()=>{ current++; nextPage(); }); } }
+
+  /* 飘花初始化 */
+  (function initSakura(){
+    for(let i=0;i<28;i++){
+      const s=document.createElement('div'); s.className='sakura'; s.innerText=Math.random()<0.6?'❀':'❤';
+      const size=12+Math.random()*18; s.style.fontSize=size+'px'; s.style.left=(Math.random()*100)+'vw'; s.style.top=(Math.random()*100)+'vh'; s.style.opacity=(0.35+Math.random()*0.6);
+      document.body.appendChild(s);
+      let dir=Math.random()<0.5?1:-1; let speed=0.02+Math.random()*0.09;
+      (function floatLoop(){ let t=0; function step(){ t+=speed; const top=parseFloat(s.style.top||0); s.style.top=((top+dir*speed)%110)+'vh'; s.style.left=(parseFloat(s.style.left||0)+Math.sin(t)*0.05)+'vw'; requestAnimationFrame(step); } requestAnimationFrame(step); })();
+    }
+  })();
+
+  container.addEventListener('click',(e)=>{
+    const tag=e.target.tagName.toLowerCase();
+    if(tag==='button'||e.target.closest('button'))return;
+    createRipple(e.clientX,e.clientY);
+    createHearts(e.clientX,e.clientY);
+    createFirework(e.clientX,e.clientY,30);
+  });
+
+  nextPage();
+
 });
-
-/* ---------- Page 6: Finale ---------- */
-pages.push((container,next)=>{
-  container.innerHTML=`<div class="full-screen finale-text">
-    <h2 style="font-size:2rem;color:#f472b6;">谢谢你，留在我身旁</h2>
-    <p style="margin-top:1rem;">未来的每一个一百天，我都想要和你一起走。点下面的按钮，再听我说一句。</p>
-    <button id="loveBtn" class="next-btn">再说一次我喜欢你</button>
-  </div>`;
-  const loveBtn=document.getElementById('loveBtn');
-  loveBtn.onclick=()=>{
-    const x=window.innerWidth/2, y=window.innerHeight/2;
-    createFirework(x,y);
-    alert('我喜欢你 ❤️');
-  };
-});
-
-/* ---------- 页面控制 ---------- */
-let current=0;
-const container=document.getElementById('container');
-function nextPage(){
-  if(current<pages.length){
-    pages[current](container,()=>{ current++; nextPage(); });
-  }
-}
-
-/* ---------- 初始化 ---------- */
-createSakura();
-nextPage();
-};
 </script>
 </body>
 </html>
-
